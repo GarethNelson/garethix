@@ -1,0 +1,2 @@
+This directory contains a simple toolchain for use in kernel development
+Use build.sh to build and install into ~/opt/cross
