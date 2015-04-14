@@ -13,7 +13,10 @@ ASFLAGS=-felf
 all: $(SOURCES) link
 
 clean:
-	-rm *.o kernel
+	-rm *.o kernel version.h
+
+version.h:
+	./make-version.sh
 
 link:
 	$(CC) $(CFLAGS) $(LDFLAGS) -o kernel $(SOURCES)

@@ -5,6 +5,7 @@ rm build/x86/initrd.img
 
 pushd kernel/
 make clean
+./make-version.sh
 make
 cp kernel ../build/x86/
 popd
