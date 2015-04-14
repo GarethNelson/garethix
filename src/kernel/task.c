@@ -154,16 +154,17 @@ void switch_task()
     // * Restarts interrupts. The STI instruction has a delay - it doesn't take effect until after
     //   the next instruction.
     // * Jumps to the location in ECX (remember we put the new EIP in there).
-    asm volatile("         \
-      cli;                 \
-      mov %0, %%ecx;       \
-      mov %1, %%esp;       \
-      mov %2, %%ebp;       \
-      mov %3, %%cr3;       \
-      mov $0x12345, %%eax; \
-      sti;                 \
-      jmp *%%ecx           "
-                 : : "r"(eip), "r"(esp), "r"(ebp), "r"(current_directory->physicalAddr));
+__asm__ __volatile__ (
+			"cli\n"
+			"mov %0, %%ebx\n"
+			"mov %1, %%esp\n"
+			"mov %2, %%ebp\n"
+			"mov %3, %%cr3\n"
+			"mov $0x10000, %%eax\n"
+			"sti\n"
+			"jmp *%%ebx"
+			: : "r" (eip), "r" (esp), "r" (ebp), "r" (current_directory->physicalAddr)
+			: "%ebx", "%esp",  "%eax");
 }
 
 int fork()
