@@ -4,6 +4,7 @@ SOURCES=x86/init.o \
         x86/portio.o \
         vsprintf.o \
         console.o \
+	cpudetect.o \
         kmain.o
 
 CFLAGS=-Iinclude/ -nostdlib -lgcc -ffreestanding -g
