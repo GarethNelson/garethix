@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+mkdir $HOME/opt
 mkdir $HOME/opt/cross
 
 rm -rf build/binutils/*
