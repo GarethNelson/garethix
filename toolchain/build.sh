@@ -15,6 +15,10 @@ make
 make install
 popd
 
+pushd gcc-4.7.2
+./contrib/download_prerequisites
+popd
+
 pushd build/gcc
 ../../gcc-4.7.2/configure  --target=$TARGET --prefix="$PREFIX" --disable-nls --enable-languages=c,c++ --without-headers
 make all-gcc

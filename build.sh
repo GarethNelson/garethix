@@ -1,6 +1,6 @@
 #!/bin/bash
 
-pushd src/kernel/
+pushd kernel/
 make clean
 make
 popd
