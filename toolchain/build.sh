@@ -1,4 +1,7 @@
 #!/bin/bash
+
+rm -rf $HOME/opt/cross
+
 mkdir $HOME/opt
 mkdir $HOME/opt/cross
 
