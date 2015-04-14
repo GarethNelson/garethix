@@ -1,5 +1,10 @@
 CC=~/opt/cross/bin/i686-elf-gcc
-SOURCES=x86/init.o x86/gdt.o
+SOURCES=x86/init.o \
+        x86/gdt.o \
+        x86/portio.o \
+        vsprintf.o \
+        console.o \
+        kmain.o
 
 CFLAGS=-Iinclude/ -nostdlib -lgcc -ffreestanding -g
 LDFLAGS=-Tx86/linker.ld

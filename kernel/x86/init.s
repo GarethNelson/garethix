@@ -64,7 +64,7 @@ _start:
 	call kernel_early
 
 	# Call the global constructors.
-	call _init
+	# call _init
 
 	# Transfer control to the main kernel.
 	call kmain

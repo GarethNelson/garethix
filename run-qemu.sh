@@ -1,2 +1,2 @@
 #!/bin/sh
-qemu -m 1024 -k build/x86/kernel -initrd initrd/initrd.img
+qemu -m 1024 -kernel build/x86/kernel -initrd build/x86/initrd.img
