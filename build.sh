@@ -1,6 +1,7 @@
 #!/bin/bash
 
-rm build/kernel
+rm build/x86/kernel
+rm build/x86/initrd.img
 
 pushd kernel/
 make clean

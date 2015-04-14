@@ -1,80 +1,47 @@
-# Declare constants used for creating a multiboot header.
-.set ALIGN,    1<<0             # align loaded modules on page boundaries
-.set MEMINFO,  1<<1             # provide memory map
-.set FLAGS,    ALIGN | MEMINFO  # this is the Multiboot 'flag' field
-.set MAGIC,    0x1BADB002       # 'magic number' lets bootloader find the header
-.set CHECKSUM, -(MAGIC + FLAGS) # checksum of above, to prove we are multiboot
+;
+; boot.s -- Kernel start location. Also defines multiboot header.
+;           Based on Bran's kernel development tutorial file start.asm
+;
 
-# Declare a header as in the Multiboot Standard.
-.section .multiboot
-.align 4
-.long MAGIC
-.long FLAGS
-.long CHECKSUM
-
-# Reserve a stack for the initial thread.
-.section .bootstrap_stack, "aw", @nobits
-stack_bottom:
-.skip 16384 # 16 KiB
-stack_top:
-
-# The kernel entry point.
-.section .text
-.global _start
-.type _start, @function
-_start:
-	movl $stack_top, %esp
-
-	# Finish installing the Task Switch Segment into the Global Descriptor Table.
-	movl $tss, %ecx
-	movw %cx, gdt + 0x28
-	shrl $16, %ecx
-	movb %cl, gdt + 0x28 + 2
-	shrl $8, %ecx
-	movb %cl, gdt + 0x28 + 7
-
-	# Load the Global Descriptor Table pointer register.
-	subl $6, %esp
-	movw gdt_size_minus_one, %cx
-	movw %cx, 0(%esp)
-	movl $gdt, %ecx
-	movl %ecx, 2(%esp)
-	lgdt 0(%esp)
-	addl $6, %esp
-
-	# Switch cs to the kernel code segment (0x08).
-	push $0x08
-	push $1f
-	retf
-1:
-
-	# Switch ds, es, fs, gs, ss to the kernel data segment (0x10).
-	movw $0x10, %cx
-	movw %cx, %ds
-	movw %cx, %es
-	movw %cx, %fs
-	movw %cx, %gs
-	movw %cx, %ss
-
-	# Switch the task switch segment register to the task switch segment (0x28).
-	movw $(0x28 /* TSS */ | 0x3 /* RPL */), %cx
-	ltr %cx
-
-	# Initialize the core kernel before running the global constructors.
-	call kernel_early
-
-	# Call the global constructors.
-	# call _init
-
-	# Transfer control to the main kernel.
-	call kmain
-
-	hlt
-.Lhang:
-        hlt
-	jmp .Lhang
-.size _start, . - _start
+MBOOT_PAGE_ALIGN    equ 1<<0    ; Load kernel and modules on a page boundary
+MBOOT_MEM_INFO      equ 1<<1    ; Provide your kernel with memory info
+MBOOT_HEADER_MAGIC  equ 0x1BADB002 ; Multiboot Magic value
+; NOTE: We do not use MBOOT_AOUT_KLUDGE. It means that GRUB does not
+; pass us a symbol table.
+MBOOT_HEADER_FLAGS  equ MBOOT_PAGE_ALIGN | MBOOT_MEM_INFO
+MBOOT_CHECKSUM      equ -(MBOOT_HEADER_MAGIC + MBOOT_HEADER_FLAGS)
 
 
+[BITS 32]                       ; All instructions should be 32-bit.
 
+[GLOBAL mboot]                  ; Make 'mboot' accessible from C.
+[EXTERN code]                   ; Start of the '.text' section.
+[EXTERN bss]                    ; Start of the .bss section.
+[EXTERN end]                    ; End of the last loadable section.
 
+mboot:
+    dd  MBOOT_HEADER_MAGIC      ; GRUB will search for this value on each
+                                ; 4-byte boundary in your kernel file
+    dd  MBOOT_HEADER_FLAGS      ; How GRUB should load your file / settings
+    dd  MBOOT_CHECKSUM          ; To ensure that the above values are correct
+    
+    dd  mboot                   ; Location of this descriptor
+    dd  code                    ; Start of kernel '.text' (code) section.
+    dd  bss                     ; End of kernel '.data' section.
+    dd  end                     ; End of kernel.
+    dd  start                   ; Kernel entry point (initial EIP).
+
+[GLOBAL start]                  ; Kernel entry point.
+[EXTERN kmain]                   ; This is the entry point of our C code
+
+start:
+    ; Load multiboot information:
+    push esp
+    push ebx
+
+    ; Execute the kernel:
+    cli                         ; Disable interrupts.
+    call kmain                   ; call our main() function.
+    jmp $                       ; Enter an infinite loop, to stop the processor
+                                ; executing whatever rubbish is in the memory
+                                ; after our kernel!

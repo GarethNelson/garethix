@@ -17,6 +17,5 @@ clean:
 
 link:
 	$(CC) $(CFLAGS) $(LDFLAGS) -o kernel $(SOURCES)
-
 .s.o:
-	$(CC) $(CFLAGS) -c $< -o $@
+	nasm $(ASFLAGS) $<
